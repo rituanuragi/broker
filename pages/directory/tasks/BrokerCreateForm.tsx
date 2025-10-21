@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   TextField,
   Button,
@@ -9,27 +9,42 @@ import {
   Paper,
   Stack,
   Box,
-  MenuItem
+  MenuItem,
+  Alert
 } from '@mui/material';
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
-const splitCSV = (s: string) =>
-  s
-    .split(',')
-    .map((x) => x.trim())
-    .filter(Boolean);
+const splitCSV = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean);
 
 export default function BrokerCreateForm({ onSuccess }: { onSuccess: () => void }) {
   const [saving, setSaving] = useState(false);
 
-  // UI shows "Full Name", backend needs brokerName
+  // --- read role from JWT & set auth header ---
+  const [role, setRole] = useState<string>('');
+  useEffect(() => {
+    try {
+      const t = localStorage.getItem('token');
+      if (t) {
+        const d: any = jwtDecode(t);
+        setRole(String(d?.role || '').toLowerCase());
+        axios.defaults.headers.common['Authorization'] = `Bearer ${t}`;
+      } else {
+        setRole('');
+      }
+    } catch {
+      setRole('');
+    }
+  }, []);
+  const canWrite = useMemo(() => role === 'brokeradmin', [role]);
+
   const [brokerName, setBrokerName] = useState('');
   const [agencyName, setAgencyName] = useState('');
   const [city, setCity] = useState('');
   const [stateVal, setStateVal] = useState('');
   const [country, setCountry] = useState('India');
-  const [specialization, setSpecialization] = useState(''); // CSV
-  const [projects, setProjects] = useState('');             // CSV
+  const [specialization, setSpecialization] = useState(''); 
+  const [projects, setProjects] = useState('');             
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [linkedin, setLinkedin] = useState('');
@@ -40,10 +55,8 @@ export default function BrokerCreateForm({ onSuccess }: { onSuccess: () => void 
   const [isVerified, setIsVerified] = useState<'yes' | 'no'>('no');
 
   const handleSubmit = async () => {
-    if (!brokerName.trim()) {
-      alert('Full name is required');
-      return;
-    }
+    if (!canWrite) { alert('Not allowed'); return; }
+    if (!brokerName.trim()) { alert('Full name is required'); return; }
 
     const payload = {
       brokerName: brokerName.trim(), // BE key
@@ -82,6 +95,16 @@ export default function BrokerCreateForm({ onSuccess }: { onSuccess: () => void 
     }
   };
 
+  
+  if (!canWrite) {
+    return (
+      <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
+        <Alert severity="info">You don’t have permission to create brokers.</Alert>
+      </Paper>
+    );
+  }
+
+  // ✅ brokeradmin sees form
   return (
     <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
       <Stack spacing={2}>

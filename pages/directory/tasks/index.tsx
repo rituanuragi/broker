@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, ReactElement, ReactNode } from 'react';
+import { useEffect, useMemo, useState, ReactElement, ReactNode } from 'react';
 import type { NextPage } from 'next';
 
 import SidebarLayout from '@/layouts/SidebarLayout';
@@ -24,12 +24,11 @@ import {
   DialogContent,
   IconButton,
   Button,
-  LinearProgress
+  LinearProgress,
+  Alert
 } from '@mui/material';
 
 import axios from 'axios';
-
-// If your jwt-decode version errors on named import, switch to: import jwt_decode from 'jwt-decode';
 import { jwtDecode } from 'jwt-decode';
 import useDebounce from '../../../hooks/useDebounce';
 import SearchTextField from '../../components/searchTextFied';
@@ -38,7 +37,6 @@ import AddIcon from '@mui/icons-material/Add';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CloseIcon from '@mui/icons-material/Close';
 
-// NEW: separate form component
 import BrokerCreateForm from './BrokerCreateForm';
 
 // ---------- Broker types ----------
@@ -97,12 +95,8 @@ const BrokerEditDialog = ({
   const b = broker ?? emptyBroker;
 
   const arrToCSV = (a?: string[]) => (a && a.length ? a.join(', ') : '');
-  const [specializationStr, setSpecializationStr] = useState(
-    arrToCSV(b.specialization)
-  );
-  const [projectsStr, setProjectsStr] = useState(
-    arrToCSV(b.serviceProjectNames)
-  );
+  const [specializationStr, setSpecializationStr] = useState(arrToCSV(b.specialization));
+  const [projectsStr, setProjectsStr] = useState(arrToCSV(b.serviceProjectNames));
 
   useEffect(() => {
     setSpecializationStr(arrToCSV(b.specialization));
@@ -110,88 +104,32 @@ const BrokerEditDialog = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [b._id]);
 
-  const parseCSV = (s: string) =>
-    s
-      .split(',')
-      .map((x) => x.trim())
-      .filter(Boolean);
+  const parseCSV = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean);
   const patch = (p: Partial<Broker>) => setBroker({ ...(b as Broker), ...p });
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="md"
-      fullWidth
-      scroll="body"
-      PaperProps={{ sx: { borderRadius: 3 } }}
-    >
-      <DialogTitle
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}
-      >
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth scroll="body" PaperProps={{ sx: { borderRadius: 3 } }}>
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         Edit Broker
-        <IconButton onClick={onClose}>
-          <CloseIcon />
-        </IconButton>
+        <IconButton onClick={onClose}><CloseIcon /></IconButton>
       </DialogTitle>
       <DialogContent dividers>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
-            <TextField
-              label="Full Name"
-              value={b.fullName || ''}
-              onChange={(e) => patch({ fullName: e.target.value })}
-              fullWidth
-            />
+            <TextField label="Full Name" value={b.fullName || ''} onChange={(e) => patch({ fullName: e.target.value })} fullWidth />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField
-              label="Agency"
-              value={b.agencyName || ''}
-              onChange={(e) => patch({ agencyName: e.target.value })}
-              fullWidth
-            />
+            <TextField label="Agency" value={b.agencyName || ''} onChange={(e) => patch({ agencyName: e.target.value })} fullWidth />
           </Grid>
 
           <Grid item xs={12} sm={4}>
-            <TextField
-              label="City"
-              value={b.location?.city || ''}
-              onChange={(e) =>
-                patch({
-                  location: { ...(b.location || {}), city: e.target.value }
-                })
-              }
-              fullWidth
-            />
+            <TextField label="City" value={b.location?.city || ''} onChange={(e) => patch({ location: { ...(b.location || {}), city: e.target.value } })} fullWidth />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <TextField
-              label="State"
-              value={b.location?.state || ''}
-              onChange={(e) =>
-                patch({
-                  location: { ...(b.location || {}), state: e.target.value }
-                })
-              }
-              fullWidth
-            />
+            <TextField label="State" value={b.location?.state || ''} onChange={(e) => patch({ location: { ...(b.location || {}), state: e.target.value } })} fullWidth />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <TextField
-              label="Country"
-              value={b.location?.country || ''}
-              onChange={(e) =>
-                patch({
-                  location: { ...(b.location || {}), country: e.target.value }
-                })
-              }
-              fullWidth
-            />
+            <TextField label="Country" value={b.location?.country || ''} onChange={(e) => patch({ location: { ...(b.location || {}), country: e.target.value } })} fullWidth />
           </Grid>
 
           <Grid item xs={12} sm={6}>
@@ -218,37 +156,17 @@ const BrokerEditDialog = ({
           </Grid>
 
           <Grid item xs={12} sm={6}>
-            <TextField
-              label="Email"
-              value={b.email || ''}
-              onChange={(e) => patch({ email: e.target.value })}
-              fullWidth
-            />
+            <TextField label="Email" value={b.email || ''} onChange={(e) => patch({ email: e.target.value })} fullWidth />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField
-              label="Phone"
-              value={b.phone || ''}
-              onChange={(e) => patch({ phone: e.target.value })}
-              fullWidth
-            />
+            <TextField label="Phone" value={b.phone || ''} onChange={(e) => patch({ phone: e.target.value })} fullWidth />
           </Grid>
 
           <Grid item xs={12} sm={6}>
-            <TextField
-              label="LinkedIn URL"
-              value={b.linkedinProfile || ''}
-              onChange={(e) => patch({ linkedinProfile: e.target.value })}
-              fullWidth
-            />
+            <TextField label="LinkedIn URL" value={b.linkedinProfile || ''} onChange={(e) => patch({ linkedinProfile: e.target.value })} fullWidth />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField
-              label="WhatsApp Number"
-              value={b.whatsappNumber || ''}
-              onChange={(e) => patch({ whatsappNumber: e.target.value })}
-              fullWidth
-            />
+            <TextField label="WhatsApp Number" value={b.whatsappNumber || ''} onChange={(e) => patch({ whatsappNumber: e.target.value })} fullWidth />
           </Grid>
 
           <Grid item xs={12} sm={6}>
@@ -256,22 +174,12 @@ const BrokerEditDialog = ({
               label="Experience (years)"
               type="number"
               value={b.experienceYears ?? ''}
-              onChange={(e) =>
-                patch({
-                  experienceYears:
-                    e.target.value === '' ? undefined : Number(e.target.value)
-                })
-              }
+              onChange={(e) => patch({ experienceYears: e.target.value === '' ? undefined : Number(e.target.value) })}
               fullWidth
             />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField
-              label="Website"
-              value={b.website || ''}
-              onChange={(e) => patch({ website: e.target.value })}
-              fullWidth
-            />
+            <TextField label="Website" value={b.website || ''} onChange={(e) => patch({ website: e.target.value })} fullWidth />
           </Grid>
 
           <Grid item xs={12} sm={6}>
@@ -280,12 +188,7 @@ const BrokerEditDialog = ({
               type="number"
               inputProps={{ step: '0.1', min: 0, max: 5 }}
               value={b.rating ?? ''}
-              onChange={(e) =>
-                patch({
-                  rating:
-                    e.target.value === '' ? undefined : Number(e.target.value)
-                })
-              }
+              onChange={(e) => patch({ rating: e.target.value === '' ? undefined : Number(e.target.value) })}
               fullWidth
             />
           </Grid>
@@ -304,12 +207,8 @@ const BrokerEditDialog = ({
         </Grid>
 
         <Box display="flex" justifyContent="flex-end" gap={1} mt={2}>
-          <Button variant="outlined" onClick={onClose} disabled={loading}>
-            Cancel
-          </Button>
-          <Button variant="contained" onClick={onSave} disabled={loading}>
-            {loading ? 'Saving…' : 'Save Changes'}
-          </Button>
+          <Button variant="outlined" onClick={onClose} disabled={loading}>Cancel</Button>
+          <Button variant="contained" onClick={onSave} disabled={loading}>{loading ? 'Saving…' : 'Save Changes'}</Button>
         </Box>
       </DialogContent>
     </Dialog>
@@ -318,7 +217,9 @@ const BrokerEditDialog = ({
 
 // ---------- Main: Broker Overview ----------
 const BrokerOverview = ({ role }: { role: string | null }) => {
-   void role;
+  // ✅ only brokeradmin can write
+  const canWrite = useMemo(() => (role || '').toLowerCase() === 'brokeradmin', [role]);
+
   const [brokers, setBrokers] = useState<Broker[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -341,6 +242,13 @@ const BrokerOverview = ({ role }: { role: string | null }) => {
   // 🔁 trigger re-fetch after create/update
   const [refresh, setRefresh] = useState(0);
 
+  // Set Authorization header (JWT) for all axios calls on mount
+  useEffect(() => {
+    const t = localStorage.getItem('token');
+    if (t) axios.defaults.headers.common['Authorization'] = `Bearer ${t}`;
+    else delete axios.defaults.headers.common['Authorization'];
+  }, []);
+
   useEffect(() => {
     setPage(1);
   }, [dName, dAgency, dCity, dEmail]);
@@ -350,7 +258,7 @@ const BrokerOverview = ({ role }: { role: string | null }) => {
       setLoading(true);
       try {
         const params: Record<string, any> = { page, limit };
-        if (dName.trim()) params.fullName = dName.trim(); // controller expects fullName
+        if (dName.trim()) params.fullName = dName.trim();
         if (dAgency.trim()) params.agencyName = dAgency.trim();
         if (dCity.trim()) params.city = dCity.trim();
         if (dEmail.trim()) params.email = dEmail.trim();
@@ -371,11 +279,7 @@ const BrokerOverview = ({ role }: { role: string | null }) => {
           fullName: r.fullName ?? r.brokerName ?? '',
           agencyName: r.agencyName,
           specialization: r.specialization,
-          location: r.location ?? {
-            city: r.city,
-            state: r.state,
-            country: r.country
-          },
+          location: r.location ?? { city: r.city, state: r.state, country: r.country },
           serviceProjectNames: r.serviceProjectNames,
           rating: r.rating,
           isVerified: r.isVerified,
@@ -391,10 +295,7 @@ const BrokerOverview = ({ role }: { role: string | null }) => {
         const list: Broker[] = raw.map(mapApiToUi);
         setBrokers(list);
 
-        const tc =
-          typeof res.data?.totalCount === 'number'
-            ? res.data.totalCount
-            : list.length;
+        const tc = typeof res.data?.totalCount === 'number' ? res.data.totalCount : list.length;
         setTotalCount(tc);
       } catch (err) {
         console.error('Search error:', err);
@@ -421,6 +322,7 @@ const BrokerOverview = ({ role }: { role: string | null }) => {
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   const handleOpenUpload = () => {
+    if (!canWrite) return;
     setSelectedFile(null);
     setUploadProgress(0);
     setUploadError(null);
@@ -433,10 +335,8 @@ const BrokerOverview = ({ role }: { role: string | null }) => {
   };
 
   const handleUpload = async () => {
-    if (!selectedFile) {
-      setUploadError('Please select a file');
-      return;
-    }
+    if (!canWrite) { setUploadError('Not allowed'); return; }
+    if (!selectedFile) { setUploadError('Please select a file'); return; }
     setUploading(true);
     setUploadProgress(0);
     setUploadError(null);
@@ -486,17 +386,17 @@ const BrokerOverview = ({ role }: { role: string | null }) => {
   const [editBroker, setEditBroker] = useState<Broker | null>(null);
 
   const handleEdit = (broker: Broker) => {
+    if (!canWrite) return;
     setEditBroker(broker);
     setEditModalOpen(true);
   };
 
   const handleDelete = async (id: string) => {
+    if (!canWrite) return;
     if (confirm('Are you sure you want to delete this broker?')) {
       try {
         setLoading(true);
-        await axios.delete(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/broker-directory/delete-directory/${id}`
-        );
+        await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/broker-directory/delete-directory/${id}`);
         setBrokers((prev) => prev.filter((b) => b._id !== id));
         setTotalCount((prev) => Math.max(prev - 1, 0));
       } catch (err) {
@@ -509,21 +409,14 @@ const BrokerOverview = ({ role }: { role: string | null }) => {
   };
 
   const handleSaveChanges = async () => {
-    if (!editBroker) return;
+    if (!canWrite || !editBroker) return;
     const { _id, fullName, ...rest } = editBroker;
-
-    // map UI → BE
     const payload = { ...rest, brokerName: fullName };
 
     try {
       setLoading(true);
-      await axios.put(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/broker-directory/update-directory/${_id}`,
-        payload
-      );
-      setBrokers((prev) =>
-        prev.map((b) => (b._id === _id ? { ...b, ...payload, fullName } : b))
-      );
+      await axios.put(`${process.env.NEXT_PUBLIC_BACKEND_URL}/broker-directory/update-directory/${_id}`, payload);
+      setBrokers((prev) => prev.map((b) => (b._id === _id ? { ...b, ...payload, fullName } : b)));
       setEditModalOpen(false);
     } catch (err) {
       console.error('Update failed:', err);
@@ -537,241 +430,131 @@ const BrokerOverview = ({ role }: { role: string | null }) => {
   return (
     <Box sx={{ px: 2, py: 1 }}>
       {loading && (
-        <LinearProgress
-          sx={{
-            position: 'sticky',
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 1,
-            mb: 1
-          }}
-        />
+        <LinearProgress sx={{ position: 'sticky', top: 0, left: 0, right: 0, zIndex: 1, mb: 1 }} />
       )}
 
       <Grid container spacing={2}>
         {/* Filter Bar */}
         <Grid item xs={12}>
           <Box display="flex" gap={1} flexWrap="wrap">
-            <SearchTextField
-              label="Search by Name"
-              value={searchName}
-              onChange={setSearchName}
-              onClear={() => handleClearSearch('name')}
-              icon="👤"
-            />
-            <SearchTextField
-              label="Search by Agency"
-              value={searchAgency}
-              onChange={setSearchAgency}
-              onClear={() => handleClearSearch('agency')}
-              icon="🏢"
-            />
-            <SearchTextField
-              label="Search by City"
-              value={searchCity}
-              onChange={setSearchCity}
-              onClear={() => handleClearSearch('city')}
-              icon="📍"
-            />
-            <SearchTextField
-              label="Search by Email"
-              value={searchEmail}
-              onChange={setSearchEmail}
-              onClear={() => handleClearSearch('email')}
-              icon="📧"
-              maxWidth={250}
-            />
+            <SearchTextField label="Search by Name" value={searchName} onChange={setSearchName} onClear={() => handleClearSearch('name')} icon="👤" />
+            <SearchTextField label="Search by Agency" value={searchAgency} onChange={setSearchAgency} onClear={() => handleClearSearch('agency')} icon="🏢" />
+            <SearchTextField label="Search by City" value={searchCity} onChange={setSearchCity} onClear={() => handleClearSearch('city')} icon="📍" />
+            <SearchTextField label="Search by Email" value={searchEmail} onChange={setSearchEmail} onClear={() => handleClearSearch('email')} icon="📧" maxWidth={250} />
           </Box>
         </Grid>
 
-        {/* Actions */}
+        {/* Actions — only for brokeradmin */}
         <Grid item xs={12}>
-          <Box display="flex" justifyContent="flex-end" gap={1}>
-            <Button
-              variant="outlined"
-              startIcon={<CloudUploadIcon />}
-              onClick={handleOpenUpload}
-            >
-              Upload Excel
-            </Button>
+          {canWrite ? (
+            <>
+              <Box display="flex" justifyContent="flex-end" gap={1}>
+                <Button variant="outlined" startIcon={<CloudUploadIcon />} onClick={handleOpenUpload}>
+                  Upload Excel
+                </Button>
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => {
+                    setEditBroker({} as Broker);
+                    setEditModalOpen(true);
+                  }}
+                >
+                  Add Broker
+                </Button>
+              </Box>
 
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => {
-                setEditBroker({} as Broker);
-                setEditModalOpen(true);
-              }}
-            >
-              Add Broker
-            </Button>
-          </Box>
-
-          {/* Add Broker Modal */}
-          <Dialog
-            open={
-              Boolean(editBroker) &&
-              editBroker?._id === undefined &&
-              editModalOpen
-            }
-            onClose={() => {
-              setEditModalOpen(false);
-              setEditBroker(null);
-            }}
-            maxWidth="md"
-            fullWidth
-            scroll="body"
-            PaperProps={{ sx: { borderRadius: 3, background: '#fff' } }}
-          >
-            <DialogTitle
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                fontWeight: 600,
-                color: 'primary.main'
-              }}
-            >
-              Add Broker
-              <IconButton
-                onClick={() => {
-                  setEditModalOpen(false);
-                  setEditBroker(null);
-                }}
+              {/* Add Broker Modal */}
+              <Dialog
+                open={Boolean(editBroker) && editBroker?._id === undefined && editModalOpen}
+                onClose={() => { setEditModalOpen(false); setEditBroker(null); }}
+                maxWidth="md"
+                fullWidth
+                scroll="body"
+                PaperProps={{ sx: { borderRadius: 3, background: '#fff' } }}
               >
-                <CloseIcon />
-              </IconButton>
-            </DialogTitle>
-            <DialogContent dividers>
-              <BrokerCreateForm
-                onSuccess={() => {
-                  setEditModalOpen(false);
-                  setEditBroker(null);
-                  setRefresh((r) => r + 1);
-                  setPage(1);
-                }}
-              />
-            </DialogContent>
-          </Dialog>
-
-          {/* Upload Excel Modal */}
-          <Dialog
-            open={openUploadModal}
-            onClose={() => setOpenUploadModal(false)}
-            maxWidth="sm"
-            fullWidth
-            scroll="body"
-            PaperProps={{ sx: { borderRadius: 3, background: '#fff' } }}
-          >
-            <DialogTitle
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                fontWeight: 600,
-                color: 'primary.main'
-              }}
-            >
-              Upload Excel – Broker Directory
-              <IconButton onClick={() => setOpenUploadModal(false)}>
-                <CloseIcon />
-              </IconButton>
-            </DialogTitle>
-            <DialogContent dividers>
-              <Stack spacing={2}>
-                <Typography variant="body2" color="text.secondary">
-                  Accepted formats: <strong>.xlsx, .xls, .csv</strong>
-                </Typography>
-
-                <Button
-                  component="label"
-                  variant="outlined"
-                  startIcon={<CloudUploadIcon />}
-                  sx={{ alignSelf: 'flex-start' }}
-                >
-                  Choose File
-                  <input
-                    hidden
-                    type="file"
-                    accept=".xlsx,.xls,.csv"
-                    onChange={handleFileChange}
+                <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontWeight: 600, color: 'primary.main' }}>
+                  Add Broker
+                  <IconButton onClick={() => { setEditModalOpen(false); setEditBroker(null); }}>
+                    <CloseIcon />
+                  </IconButton>
+                </DialogTitle>
+                <DialogContent dividers>
+                  <BrokerCreateForm
+                    onSuccess={() => {
+                      setEditModalOpen(false);
+                      setEditBroker(null);
+                      setRefresh((r) => r + 1);
+                      setPage(1);
+                    }}
                   />
-                </Button>
+                </DialogContent>
+              </Dialog>
 
-                {selectedFile && (
-                  <Typography variant="body2">
-                    Selected: <strong>{selectedFile.name}</strong>
-                  </Typography>
-                )}
-
-                {uploading && (
-                  <Box>
-                    <LinearProgress
-                      variant="determinate"
-                      value={uploadProgress}
-                    />
-                    <Typography
-                      mt={0.5}
-                      variant="caption"
-                      color="text.secondary"
-                    >
-                      Uploading… {uploadProgress}%
+              {/* Upload Excel Modal */}
+              <Dialog
+                open={openUploadModal}
+                onClose={() => setOpenUploadModal(false)}
+                maxWidth="sm"
+                fullWidth
+                scroll="body"
+                PaperProps={{ sx: { borderRadius: 3, background: '#fff' } }}
+              >
+                <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontWeight: 600, color: 'primary.main' }}>
+                  Upload Excel – Broker Directory
+                  <IconButton onClick={() => setOpenUploadModal(false)}><CloseIcon /></IconButton>
+                </DialogTitle>
+                <DialogContent dividers>
+                  <Stack spacing={2}>
+                    <Typography variant="body2" color="text.secondary">
+                      Accepted formats: <strong>.xlsx, .xls, .csv</strong>
                     </Typography>
-                  </Box>
-                )}
 
-                {uploadError && (
-                  <Typography variant="body2" color="error">
-                    {uploadError}
-                  </Typography>
-                )}
+                    <Button component="label" variant="outlined" startIcon={<CloudUploadIcon />} sx={{ alignSelf: 'flex-start' }}>
+                      Choose File
+                      <input hidden type="file" accept=".xlsx,.xls,.csv" onChange={handleFileChange} />
+                    </Button>
 
-                <Divider />
+                    {selectedFile && <Typography variant="body2">Selected: <strong>{selectedFile.name}</strong></Typography>}
 
-                <Stack spacing={0.5}>
-                  <Typography variant="subtitle2">
-                    Expected headers (row 1):
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                    brokerName, agencyName, city, state, country,
-                    specialization, serviceProjectNames, email, phone,
-                    linkedinProfile, whatsappNumber, experienceYears, website,
-                    rating, isVerified
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    • <strong>specialization</strong> &{' '}
-                    <strong>serviceProjectNames</strong> comma-separated. •{' '}
-                    <strong>isVerified</strong>: yes/no or true/false.
-                  </Typography>
-                </Stack>
+                    {uploading && (
+                      <Box>
+                        <LinearProgress variant="determinate" value={uploadProgress} />
+                        <Typography mt={0.5} variant="caption" color="text.secondary">
+                          Uploading… {uploadProgress}%
+                        </Typography>
+                      </Box>
+                    )}
 
-                <Button
-                  variant="text"
-                  onClick={downloadCsvTemplate}
-                  sx={{ alignSelf: 'flex-start' }}
-                >
-                  Download CSV Template
-                </Button>
+                    {uploadError && (<Typography variant="body2" color="error">{uploadError}</Typography>)}
 
-                <Box display="flex" justifyContent="flex-end" gap={1} mt={1}>
-                  <Button
-                    variant="outlined"
-                    onClick={() => setOpenUploadModal(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="contained"
-                    onClick={handleUpload}
-                    disabled={!selectedFile || uploading}
-                  >
-                    {uploading ? 'Uploading…' : 'Upload & Import'}
-                  </Button>
-                </Box>
-              </Stack>
-            </DialogContent>
-          </Dialog>
+                    <Divider />
+
+                    <Stack spacing={0.5}>
+                      <Typography variant="subtitle2">Expected headers (row 1):</Typography>
+                      <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                        brokerName, agencyName, city, state, country, specialization, serviceProjectNames, email, phone, linkedinProfile, whatsappNumber, experienceYears, website, rating, isVerified
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        • <strong>specialization</strong> & <strong>serviceProjectNames</strong> comma-separated. • <strong>isVerified</strong>: yes/no or true/false.
+                      </Typography>
+                    </Stack>
+
+                    <Button variant="text" onClick={downloadCsvTemplate} sx={{ alignSelf: 'flex-start' }}>
+                      Download CSV Template
+                    </Button>
+
+                    <Box display="flex" justifyContent="flex-end" gap={1} mt={1}>
+                      <Button variant="outlined" onClick={() => setOpenUploadModal(false)}>Cancel</Button>
+                      <Button variant="contained" onClick={handleUpload} disabled={!selectedFile || uploading}>
+                        {uploading ? 'Uploading…' : 'Upload & Import'}
+                      </Button>
+                    </Box>
+                  </Stack>
+                </DialogContent>
+              </Dialog>
+            </>
+          ) : null}
         </Grid>
 
         {/* Cards */}
@@ -789,162 +572,73 @@ const BrokerOverview = ({ role }: { role: string | null }) => {
                 justifyContent: 'space-between',
                 border: '1px solid #e5e7eb',
                 transition: 'all 0.3s ease',
-                '&:hover': {
-                  boxShadow: '0 6px 20px rgba(0,0,0,0.05)',
-                  borderColor: '#cbd5e1'
-                }
+                '&:hover': { boxShadow: '0 6px 20px rgba(0,0,0,0.05)', borderColor: '#cbd5e1' }
               }}
             >
               <Box display="flex" alignItems="center" mb={2}>
-                <Avatar sx={{ bgcolor: '#2563EB', mr: 2 }}>
-                  {b.fullName?.charAt(0)?.toUpperCase() || 'B'}
-                </Avatar>
+                <Avatar sx={{ bgcolor: '#2563EB', mr: 2 }}>{b.fullName?.charAt(0)?.toUpperCase() || 'B'}</Avatar>
                 <Box>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: '#2E3A59', fontWeight: 600 }}
-                  >
-                    {b.fullName}
-                  </Typography>
-                  <Typography variant="subtitle2" sx={{ color: '#6B7280' }}>
-                    {b.agencyName || 'Independent'}
-                  </Typography>
+                  <Typography variant="h6" sx={{ color: '#2E3A59', fontWeight: 600 }}>{b.fullName}</Typography>
+                  <Typography variant="subtitle2" sx={{ color: '#6B7280' }}>{b.agencyName || 'Independent'}</Typography>
                 </Box>
               </Box>
 
               <Divider sx={{ mb: 2 }} />
 
-              {(b.location?.city ||
-                b.location?.state ||
-                b.location?.country) && (
+              {(b.location?.city || b.location?.state || b.location?.country) && (
                 <Typography variant="body2" sx={{ mb: 1 }}>
-                  <strong>Location:</strong>{' '}
-                  {[b.location?.city, b.location?.state, b.location?.country]
-                    .filter(Boolean)
-                    .join(', ')}
+                  <strong>Location:</strong> {[b.location?.city, b.location?.state, b.location?.country].filter(Boolean).join(', ')}
                 </Typography>
               )}
 
               {b.specialization?.length ? (
                 <>
-                  <Typography
-                    variant="subtitle2"
-                    sx={{ color: '#2E3A59', fontWeight: 500 }}
-                    gutterBottom
-                  >
-                    Specialization:
-                  </Typography>
+                  <Typography variant="subtitle2" sx={{ color: '#2E3A59', fontWeight: 500 }} gutterBottom>Specialization:</Typography>
                   <Stack direction="row" flexWrap="wrap" spacing={1} mb={2}>
-                    {b.specialization.map((s, i) => (
-                      <Chip key={i} label={s} size="small" variant="outlined" />
-                    ))}
+                    {b.specialization.map((s, i) => (<Chip key={i} label={s} size="small" variant="outlined" />))}
                   </Stack>
                 </>
               ) : null}
 
               {b.serviceProjectNames?.length ? (
                 <>
-                  <Typography
-                    variant="subtitle2"
-                    sx={{ color: '#2E3A59', fontWeight: 500 }}
-                    gutterBottom
-                  >
-                    Projects:
-                  </Typography>
+                  <Typography variant="subtitle2" sx={{ color: '#2E3A59', fontWeight: 500 }} gutterBottom>Projects:</Typography>
                   <Stack direction="row" flexWrap="wrap" spacing={1} mb={2}>
                     {b.serviceProjectNames.map((p, i) => (
-                      <Chip
-                        key={i}
-                        label={p}
-                        size="small"
-                        variant="outlined"
-                        sx={{
-                          color: '#047857',
-                          borderColor: '#6EE7B7',
-                          backgroundColor: '#ECFDF5',
-                          fontWeight: 500
-                        }}
-                      />
+                      <Chip key={i} label={p} size="small" variant="outlined"
+                        sx={{ color: '#047857', borderColor: '#6EE7B7', backgroundColor: '#ECFDF5', fontWeight: 500 }} />
                     ))}
                   </Stack>
                 </>
               ) : null}
 
               <Box mb={1}>
-                {b.email && (
-                  <Typography
-                    variant="body2"
-                    sx={{ color: '#374151', wordBreak: 'break-all' }}
-                    gutterBottom
-                  >
-                    <strong>Email:</strong> {b.email}
-                  </Typography>
-                )}
-                {b.phone && (
-                  <Typography variant="body2" sx={{ color: '#374151' }}>
-                    <strong>Phone:</strong> {b.phone}
-                  </Typography>
-                )}
-                {b.rating !== undefined && (
-                  <Typography variant="body2" sx={{ color: '#374151' }}>
-                    <strong>Rating:</strong> {b.rating} ⭐{' '}
-                    {b.avgRating ? `(avg ${b.avgRating})` : ''}
-                  </Typography>
-                )}
-                {b.isVerified && (
-                  <Typography variant="body2" color="green">
-                    Verified ✅
-                  </Typography>
-                )}
+                {b.email && (<Typography variant="body2" sx={{ color: '#374151', wordBreak: 'break-all' }} gutterBottom><strong>Email:</strong> {b.email}</Typography>)}
+                {b.phone && (<Typography variant="body2" sx={{ color: '#374151' }}><strong>Phone:</strong> {b.phone}</Typography>)}
+                {b.rating !== undefined && (<Typography variant="body2" sx={{ color: '#374151' }}><strong>Rating:</strong> {b.rating} ⭐ {b.avgRating ? `(avg ${b.avgRating})` : ''}</Typography>)}
+                {b.isVerified && (<Typography variant="body2" color="green">Verified ✅</Typography>)}
               </Box>
 
-              <Box display="flex" justifyContent="flex-end" gap={1} mt={2}>
-                <Chip
-                  label="Edit"
-                  onClick={() => handleEdit(b)}
-                  clickable
-                  sx={{
-                    color: '#1D4ED8',
-                    borderColor: '#1D4ED8',
-                    backgroundColor: '#EEF2FF',
-                    '&:hover': { backgroundColor: '#E0E7FF' }
-                  }}
-                  variant="outlined"
-                />
-                <Chip
-                  label="Delete"
-                  onClick={() => handleDelete(b._id)}
-                  clickable
-                  sx={{
-                    color: '#B91C1C',
-                    borderColor: '#FCA5A5',
-                    backgroundColor: '#FEF2F2',
-                    '&:hover': { backgroundColor: '#FEE2E2' }
-                  }}
-                  variant="outlined"
-                />
-              </Box>
+              {canWrite && (
+                <Box display="flex" justifyContent="flex-end" gap={1} mt={2}>
+                  <Chip label="Edit" onClick={() => handleEdit(b)} clickable
+                    sx={{ color: '#1D4ED8', borderColor: '#1D4ED8', backgroundColor: '#EEF2FF', '&:hover': { backgroundColor: '#E0E7FF' } }} variant="outlined" />
+                  <Chip label="Delete" onClick={() => handleDelete(b._id)} clickable
+                    sx={{ color: '#B91C1C', borderColor: '#FCA5A5', backgroundColor: '#FEF2F2', '&:hover': { backgroundColor: '#FEE2E2' } }} variant="outlined" />
+                </Box>
+              )}
             </Paper>
           </Grid>
         ))}
 
         {brokers.length === 0 && !loading && (
           <Grid item xs={12}>
-            <Typography align="center" color="text.secondary">
-              No brokers match your search criteria.
-            </Typography>
+            <Typography align="center" color="text.secondary">No brokers match your search criteria.</Typography>
           </Grid>
         )}
 
         {totalCount > 0 && (
-          <Grid
-            item
-            xs={12}
-            mt={2}
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-          >
+          <Grid item xs={12} mt={2} display="flex" justifyContent="space-between" alignItems="center">
             <Pagination
               count={Math.ceil(totalCount / limit)}
               page={page}
@@ -952,27 +646,15 @@ const BrokerOverview = ({ role }: { role: string | null }) => {
               color="primary"
               sx={{
                 '& .MuiPaginationItem-root': { color: '#2563EB' },
-                '& .Mui-selected': {
-                  backgroundColor: '#2563EB',
-                  color: '#fff',
-                  '&:hover': { backgroundColor: '#1E40AF' }
-                }
+                '& .Mui-selected': { backgroundColor: '#2563EB', color: '#fff', '&:hover': { backgroundColor: '#1E40AF' } }
               }}
             />
-
             <TextField
-              select
-              label="Rows per page"
-              value={limit}
-              onChange={(e) => {
-                setLimit(parseInt(e.target.value as string, 10));
-                setPage(1);
-              }}
+              select label="Rows per page" value={limit}
+              onChange={(e) => { setLimit(parseInt(e.target.value as string, 10)); setPage(1); }}
               size="small"
               sx={{
-                width: 150,
-                backgroundColor: '#f9fafb',
-                borderRadius: 1,
+                width: 150, backgroundColor: '#f9fafb', borderRadius: 1,
                 '& .MuiOutlinedInput-root': {
                   backgroundColor: '#f9fafb',
                   '& fieldset': { borderColor: '#cbd5e1' },
@@ -983,33 +665,29 @@ const BrokerOverview = ({ role }: { role: string | null }) => {
                 '& .Mui-focused .MuiInputLabel-root': { color: '#2563EB' }
               }}
             >
-              {[6, 9, 12, 15, 20].map((val) => (
-                <MenuItem key={val} value={val}>
-                  {val}
-                </MenuItem>
-              ))}
+              {[6, 9, 12, 15, 20].map((val) => (<MenuItem key={val} value={val}>{val}</MenuItem>))}
             </TextField>
           </Grid>
         )}
 
-        {/* Edit Modal (existing row) */}
-        <BrokerEditDialog
-          open={Boolean(editBroker?._id) && editModalOpen}
-          onClose={() => setEditModalOpen(false)}
-          broker={editBroker}
-          setBroker={(data) => setEditBroker(data)}
-          onSave={handleSaveChanges}
-          loading={loading}
-        />
+        {/* Edit Modal — only for brokeradmin */}
+        {canWrite && (
+          <BrokerEditDialog
+            open={Boolean(editBroker?._id) && editModalOpen}
+            onClose={() => setEditModalOpen(false)}
+            broker={editBroker}
+            setBroker={(data) => setEditBroker(data)}
+            onSave={handleSaveChanges}
+            loading={loading}
+          />
+        )}
       </Grid>
     </Box>
   );
 };
 
 // ---------- Page wrapper (role via JWT) ----------
-type NextPageWithLayout = NextPage & {
-  getLayout?: (page: ReactElement) => ReactNode;
-};
+type NextPageWithLayout = NextPage & { getLayout?: (page: ReactElement) => ReactNode; };
 
 const BrokerDirectoryPage: NextPageWithLayout = () => {
   const [role, setRole] = useState<string | null>(null);
@@ -1026,16 +704,12 @@ const BrokerDirectoryPage: NextPageWithLayout = () => {
         return null;
       }
     };
-
     setRole(getUserRole());
   }, []);
 
   return (
     <>
-      <Container
-        maxWidth="lg"
-        sx={{ backgroundColor: '#e5e7eb', minHeight: '100vh', py: 3 }}
-      >
+      <Container maxWidth="lg" sx={{ backgroundColor: '#e5e7eb', minHeight: '100vh', py: 3 }}>
         <Box borderBottom={1} borderColor="divider" mb={2}></Box>
         <Grid container>
           <Grid item xs={12}>
@@ -1048,8 +722,5 @@ const BrokerDirectoryPage: NextPageWithLayout = () => {
   );
 };
 
-BrokerDirectoryPage.getLayout = (page: ReactElement) => (
-  <SidebarLayout>{page}</SidebarLayout>
-);
-
+BrokerDirectoryPage.getLayout = (page: ReactElement) => (<SidebarLayout>{page}</SidebarLayout>);
 export default BrokerDirectoryPage;
