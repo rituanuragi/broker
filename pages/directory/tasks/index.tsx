@@ -24,8 +24,7 @@ import {
   DialogContent,
   IconButton,
   Button,
-  LinearProgress,
-  Alert
+  LinearProgress
 } from '@mui/material';
 
 import axios from 'axios';
