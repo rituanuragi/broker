@@ -126,7 +126,7 @@ const BankerDirectoryForm = ({ onSuccess }: { onSuccess: () => void }) => {
   return (
     <Paper elevation={3} sx={{ p: 4, maxWidth: 900, margin: '0 auto', backgroundColor:'#fff', borderRadius: 3 }}>
       <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: '#222' }}>
-        Create Banker Directory Entry
+        Create Broker Directory Entry
       </Typography>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
