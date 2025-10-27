@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Box, Button, Container, Grid, Stack, Typography } from '@mui/material';
-import { styled, alpha } from '@mui/material/styles';
+import { styled, alpha } from '@mui/material/styles'; // ✅ sahi import
 import { motion } from 'framer-motion';
 import { PlayArrowRounded, ArrowForward as ArrowForwardIcon } from '@mui/icons-material';
 
