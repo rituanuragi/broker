@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Box, Button, Container, Grid, Stack, Typography } from '@mui/material';
-import { styled, alpha } from '@mui/material/styles'; // ✅ sahi import
+import { styled, alpha } from '@mui/material/styles';
 import { motion } from 'framer-motion';
 import { PlayArrowRounded, ArrowForward as ArrowForwardIcon } from '@mui/icons-material';
 
@@ -93,8 +93,6 @@ const PlayDot = styled(Box)(() => ({
   background: alpha(TEXT_ON_DARK, 0.18)
 }));
 
-// Local public image (public/hero-broker.png)
-const ILLUSTRATION_SRC = '/hero-broker.png';
 
 const HeroBanner: React.FC = () => {
   return (
@@ -152,33 +150,34 @@ const HeroBanner: React.FC = () => {
                 style={{ width: '100%', display: 'flex', justifyContent: 'flex-end' }}
               >
                 {/* ✅ Direct <img> (no styled Box, no component="img") */}
-                <Box
-                  sx={{
-                    width: '100%',
-                    maxWidth: 700,
-                    height: 420,
-                    borderRadius: 2.25, // ~18px
-                    overflow: 'hidden',
-                    boxShadow: `0 18px 60px ${alpha('#000', 0.35)}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    bgcolor: 'transparent',
-                    // responsive
-                    '@media (max-width:900px)': { maxWidth: 560, height: 360 }
-                  }}
-                >
-                  <img
-                    src={ILLUSTRATION_SRC}
-                    alt="Broker matching illustration"
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'contain',
-                      display: 'block'
-                    }}
-                  />
-                </Box>
+              {/* ✅ Clean and simple image container */}
+<Box
+  sx={{
+    width: '100%',
+    maxWidth: 700,
+    height: 420,
+    borderRadius: 2,
+    overflow: 'hidden',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    bgcolor: 'transparent',
+    boxShadow: 3,
+    '@media (max-width:900px)': { maxWidth: 560, height: 360 }
+  }}
+>
+  <Box
+    component="img"
+    src="https://www.brokerdirectory.co.za/images/logo.png"
+    alt="Broker matching illustration"
+    sx={{
+      width: '100%',
+      height: 'auto',
+      objectFit: 'contain'
+    }}
+  />
+</Box>
+
               </motion.div>
             </Grid>
           </Grid>
